@@ -1,0 +1,22 @@
+---
+# Playbook to test the full deployment of laravel.io (from creation to destruction)
+
+- import_playbook: laravelio-deploy.yml
+
+- name: Tests
+  hosts: localhost
+  gather_facts: true
+  roles:
+    - { role: test_app }
+
+- import_playbook: laravelio-undeploy.yml
+
+- import_playbook: laravelio-deploy.yml
+
+- name: Tests
+  hosts: localhost
+  gather_facts: yes
+  roles:
+    - { role: test_app }
+
+- import_playbook: laravelio-undeploy.yml delete_data='true'
