@@ -1,3 +1,26 @@
 ---
-# Playbook to deploy laravel.io and its components
-# TO DO
+- name: Deploy Laravel.io Application on GKE
+  hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: Create Kubernetes Deployment for Laravel.io
+      k8s:
+        state: present
+        definition: "{{ lookup('file', 'laravelio-deployment.yaml') }}"
+      register: laravelio_deployment
+
+    - name: Create Kubernetes Service for Laravel.io
+      k8s:
+        state: present
+        definition: "{{ lookup('file', 'laravelio-service.yaml') }}"
+      register: laravelio_service
+
+    - name: Wait for Laravel.io Deployment to be ready
+      k8s_info:
+        api_version: apps/v1
+        kind: Deployment
+        name: laravelio-deployment
+      register: laravelio_deployment_info
+      until: laravelio_deployment_info.resources[0].status.readyReplicas == laravelio_deployment_info.resources[0].status.replicas
+      retries: 30
+      delay: 10

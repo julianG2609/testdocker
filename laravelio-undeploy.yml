@@ -1,3 +1,14 @@
 ---
-# Playbook to undeploy laravel.io and its component
-# TO DO
+- name: Undeploy Laravel.io Application from GKE
+  hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: Delete Kubernetes Service for Laravel.io
+      k8s:
+        state: absent
+        definition: "{{ lookup('file', 'laravelio-service.yaml') }}"
+
+    - name: Delete Kubernetes Deployment for Laravel.io
+      k8s:
+        state: absent
+        definition: "{{ lookup('file', 'laravelio-deployment.yaml') }}"

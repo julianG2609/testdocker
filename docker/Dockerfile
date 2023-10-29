@@ -1,24 +1,24 @@
-# Use a base image with PHP and required extensions
-FROM php:7.4-fpm
+# Use an official Ansible base image
+FROM ansible/ansible:latest
 
-# Install system dependencies and PHP extensions
-RUN apt-get update && apt-get install -y libpng-dev libjpeg-dev zip unzip && \
-    docker-php-ext-configure gd --with-jpeg && \
-    docker-php-ext-install gd pdo pdo_mysql && \
-    apt-get clean
+# Install the Google Cloud SDK
+RUN apt-get update && apt-get install -y curl && \
+    export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" && \
+    echo "deb http://packages.cloud.google.com/apt $CLOUD_SDK_REPO main" | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list && \
+    curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - && \
+    apt-get update -y && apt-get install -y google-cloud-sdk
 
-# Set the working directory
-WORKDIR /var/www/html
+# Install any additional dependencies for your playbooks (e.g., Python modules)
+#RUN pip install <dependency>
 
-# Copy the Laravel application files to the container
-COPY . .
+# Copy your Ansible playbooks and related files to the container
+COPY laravelio-deploy.yml /ansible/playbooks/laravelio-deploy.yml
+COPY laravelio-undeploy.yml /ansible/playbooks/laravelio-undeploy.yml
+COPY laravelio-test.yml /ansible/playbooks/laravelio-test.yml
+COPY laravelio-service.yaml /ansible/playbooks/laravelio-service.yaml
 
-# Install Composer and Laravel dependencies
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer && \
-    composer install
+# Set the working directory to the location of your playbooks
+WORKDIR /ansible/playbooks
 
-# Expose the port the application will run on
-EXPOSE 8000
-
-# Start the Laravel application
-CMD php artisan serve --host=0.0.0.0 --port=8000
+# Run the Ansible playbooks
+CMD ansible-playbook laravelio-test.yml

@@ -3,7 +3,7 @@
 
 - import_playbook: laravelio-deploy.yml
 
-- name: Tests
+- name: Test Deployment
   hosts: localhost
   gather_facts: true
   roles:
@@ -13,10 +13,12 @@
 
 - import_playbook: laravelio-deploy.yml
 
-- name: Tests
+- name: Test Deployment Again
   hosts: localhost
   gather_facts: yes
   roles:
     - { role: test_app }
 
-- import_playbook: laravelio-undeploy.yml delete_data='true'
+- import_playbook: laravelio-undeploy.yml
+  vars:
+    delete_data: true
